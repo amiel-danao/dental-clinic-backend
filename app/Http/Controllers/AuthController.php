@@ -4,27 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function registerPatient(Request $request)
     {
-        $fields = $request->validate([
-            "fullName" => "required|string",
-            "email" => "required|string|unique:users,email|email:rfc",
-            "password" => "required|string"
-        ]);
+        try {
+            $fields = $request->validate([
+                "fullName" => "required|string",
+                "email" => "required|string|unique:users,email|email:rfc",
+                "password" => "required|string"
+            ]);
 
-        User::create([
-            "name" => $fields["fullName"],
-            "email" => $fields["email"],
-            "password" => bcrypt($fields["password"])
-        ]);
+            
 
-        return [
-            "message" => "User created."
-        ];
+            // $users = DB::table('users')
+            //         ->where('email', '=', $fields["email"])
+            //         ->get();
+
+            // if (count($users) > 0) {
+            //     return response([
+            //         "message" => "User already exists.",
+            //     ], 409);
+            // }
+
+            User::create([
+                "name" => $fields["fullName"],
+                "email" => $fields["email"],
+                "password" => bcrypt($fields["password"])
+            ], 201);
+
+
+
+            return [
+                "message" => "User created."
+            ];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(["message" => "Validation error", "errors" => $e->errors()], $e->status);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "An error occurred", "error" => $e->getMessage()], 500);
+        }
     }
 
     public function registerAdmin(Request $request)
