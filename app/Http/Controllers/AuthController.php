@@ -17,19 +17,7 @@ class AuthController extends Controller
                 "email" => "required|string|unique:users,email|email:rfc",
                 "password" => "required|string"
             ]);
-
             
-
-            // $users = DB::table('users')
-            //         ->where('email', '=', $fields["email"])
-            //         ->get();
-
-            // if (count($users) > 0) {
-            //     return response([
-            //         "message" => "User already exists.",
-            //     ], 409);
-            // }
-
             User::create([
                 "name" => $fields["fullName"],
                 "email" => $fields["email"],
@@ -67,7 +55,8 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
+{
+    try {
         $fields = $request->validate([
             "email" => "required|string|email:rfc",
             "password" => "required|string"
@@ -78,7 +67,6 @@ class AuthController extends Controller
         if (!$user || !Hash::check($fields["password"], $user->password)) {
             return response([
                 "message" => "Unauthorized",
-
             ], 401);
         }
 
@@ -88,7 +76,14 @@ class AuthController extends Controller
             "message" => "Logged in.",
             "token" => $token
         ], 201);
+    } catch (\Exception $e) {
+        return response([
+            "message" => "An error occurred.",
+            "error" => $e->getMessage()
+        ], 500);
     }
+}
+
 
     public function logout(Request $request)
     {
